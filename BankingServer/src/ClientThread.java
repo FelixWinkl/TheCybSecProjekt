@@ -156,7 +156,6 @@ public class ClientThread implements Runnable
     {
         // Wait for login packet
         String loginRequest = Utility.receivePacket(_clientSocketInputStream);
-
         // Split packet
         String[] loginRequestParts = loginRequest.split(",");
         if (loginRequestParts.length < 2)

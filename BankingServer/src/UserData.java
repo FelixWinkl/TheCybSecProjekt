@@ -136,17 +136,11 @@ public class UserData
     {
         try
         {
-            // Compare passwords
-            for (int i = 0; i < password.length(); ++i)
-            {
-                // Matching character?
-                if (password.charAt(i) != _password.charAt(i))
-                    return false;
-
-                // Make brute force attacks inefficient
-                Thread.sleep(500);
+            if(password.equals(_password)){
+                return true;
             }
-            return true;
+            Thread.sleep(500);
+            return false;
         }
         catch (Exception ex)
         {
