@@ -134,24 +134,7 @@ public class UserData
      */
     public boolean checkPassword(String password)
     {
-        try
-        {
-            // Compare passwords
-            for (int i = 0; i < password.length(); ++i)
-            {
-                // Matching character?
-                if (password.charAt(i) != _password.charAt(i))
-                    return false;
-
-                // Make brute force attacks inefficient
-                Thread.sleep(500);
-            }
-            return true;
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
+        return password.equals(_password);
     }
 
     /**
