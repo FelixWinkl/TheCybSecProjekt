@@ -134,18 +134,7 @@ public class UserData
      */
     public boolean checkPassword(String password)
     {
-        try
-        {
-            if(password.equals(_password)){
-                return true;
-            }
-            Thread.sleep(500);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
+        return password.equals(_password);
     }
 
     /**
