@@ -226,7 +226,18 @@ public class ClientThread implements Runnable
         _database.addUserDevice(_userId, registrationId);
 
         // Send confirmation code via e-mail or display it in server terminal
-        String confirmationCode = registrationId.substring(2, 6);
+        //String confirmationCode = registrationId.substring(2, 6);
+        StringBuilder builder = new StringBuilder();
+        for(int i = 0; i < 4; i++){
+            if(Math.random()<0.8)
+            {
+                builder.append(Integer.toString((char) ((int) (Math.random() * 122 + 97))));
+            }
+            else{
+                builder.append((int) (Math.random()*9));
+            }
+        }
+        String confirmationCode = builder.toString();
         LabEnvironment.sendConfirmationCode(_database.getUserName(_userId), confirmationCode);
 
         // Wait for client confirmation code
