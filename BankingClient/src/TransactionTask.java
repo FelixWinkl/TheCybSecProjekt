@@ -24,10 +24,10 @@ public class TransactionTask extends Task
      * @param socketOutputStream The socket output stream.
      * @param terminalScanner    A scanner object to read terminal input.
      */
-    public TransactionTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner)
+    public TransactionTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner,  ClientConfiguration clientConfiguration)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream);
+        super(socketInputStream, socketOutputStream, clientConfiguration);
 
         // Save parameters
         _terminalScanner = terminalScanner;
@@ -49,15 +49,15 @@ public class TransactionTask extends Task
         // Inform server about transaction
         String prePacket = "transaction";
         System.err.println("Sending transaction header packet...");
-        Utility.sendPacket(_socketOutputStream, prePacket);
+        _communicator.sendPackage(_socketOutputStream, prePacket);
 
         // Send packet
         String transactionPacket = recipient + "," + amount;
         System.err.println("Sending transaction packet...");
-        Utility.sendPacket(_socketOutputStream, transactionPacket);
+        _communicator.sendPackage(_socketOutputStream, transactionPacket);
 
         // Wait for response packet
-        String moneySendResponse = Utility.receivePacket(_socketInputStream);
+        String moneySendResponse = Utility.receivePacketNoEncryption(_socketInputStream);
         System.err.println("Server response: " + moneySendResponse);
         _successful = moneySendResponse.equals("Transaction successful.");
     }

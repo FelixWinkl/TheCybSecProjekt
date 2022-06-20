@@ -13,10 +13,10 @@ public class BalanceTask extends Task
      * @param socketInputStream  The socket input stream.
      * @param socketOutputStream The socket output stream.
      */
-    public BalanceTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream)
+    public BalanceTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream,  ClientConfiguration clientConfiguration)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream);
+        super(socketInputStream, socketOutputStream, clientConfiguration);
     }
 
     @Override
@@ -25,17 +25,17 @@ public class BalanceTask extends Task
         // Send request packet
         String requestPacket = "balance";
         System.err.println("Sending balance request packet...");
-        Utility.sendPacket(_socketOutputStream, requestPacket);
+        _communicator.sendPackage(_socketOutputStream, requestPacket);
 
         // Read total money
         System.err.println("Waiting for first balance response packet...");
-        String balanceMoneyResponse = Utility.receivePacket(_socketInputStream);
+        String balanceMoneyResponse = Utility.receivePacketNoEncryption(_socketInputStream);
         int balanceMoney = Integer.parseInt(balanceMoneyResponse);
         System.out.println("Current money: " + balanceMoney);
 
         // Wait for count response packet
         System.err.println("Waiting for balance count packet...");
-        String balanceCountResponse = Utility.receivePacket(_socketInputStream);
+        String balanceCountResponse = Utility.receivePacketNoEncryption(_socketInputStream);
         int balanceCount = Integer.parseInt(balanceCountResponse);
         System.err.println("Balance entry count: " + balanceCount);
 
@@ -45,7 +45,7 @@ public class BalanceTask extends Task
         for (int i = 0; i < balanceCount; ++i)
         {
             // Receive & split entry data
-            String balanceEntry = Utility.receivePacket(_socketInputStream);
+            String balanceEntry = Utility.receivePacketNoEncryption(_socketInputStream);
             String[] balanceEntryParts = balanceEntry.split(",");
             if (balanceEntryParts.length < 2)
             {

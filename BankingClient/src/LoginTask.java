@@ -28,10 +28,10 @@ public class LoginTask extends Task
      * @param socketOutputStream The socket output stream.
      * @param terminalScanner    A scanner object to read terminal input.
      */
-    public LoginTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner)
+    public LoginTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner,  ClientConfiguration clientConfiguration)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream);
+        super(socketInputStream, socketOutputStream, clientConfiguration);
 
         // Save parameters
         _terminalScanner = terminalScanner;
@@ -51,10 +51,10 @@ public class LoginTask extends Task
 
         // Send login packet
         String loginPacket = _name + "," + password;
-        Utility.sendPacket(_socketOutputStream, loginPacket);
+        _communicator.sendPackage(_socketOutputStream, loginPacket);
 
         // Wait for response packet
-        String loginResponse = Utility.receivePacket(_socketInputStream);
+        String loginResponse = Utility.receivePacketNoEncryption(_socketInputStream);
         System.err.println("Server response: " + loginResponse);
         _successful = loginResponse.equals("Login OK.");
     }

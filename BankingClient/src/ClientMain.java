@@ -38,7 +38,7 @@ public class ClientMain
             DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
 
             // Run login task
-            LoginTask loginTask = new LoginTask(inputStream, outputStream, terminalScanner);
+            LoginTask loginTask = new LoginTask(inputStream, outputStream, terminalScanner, clientConfiguration);
             loginTask.run();
             if (!loginTask.getSuccessful())
             {
@@ -61,7 +61,7 @@ public class ClientMain
                     case 'b' -> {
                         // Run balance retrieval task
                         System.err.println("Starting balance task...");
-                        new BalanceTask(inputStream, outputStream).run();
+                        new BalanceTask(inputStream, outputStream, clientConfiguration).run();
                     }
                     case 't' -> {
                         // Check for device authentication
@@ -69,7 +69,7 @@ public class ClientMain
                         {
                             // Run registration
                             System.err.println("Starting registration task...");
-                            RegistrationTask registrationTask = new RegistrationTask(inputStream, outputStream, terminalScanner, userName, args[3]);
+                            RegistrationTask registrationTask = new RegistrationTask(inputStream, outputStream, terminalScanner, userName, args[3], clientConfiguration);
                             registrationTask.run();
                             if (!registrationTask.getSuccessful())
                                 break;
@@ -78,7 +78,7 @@ public class ClientMain
 
                         // Run transaction task
                         System.err.println("Starting transaction task...");
-                        TransactionTask transactionTask = new TransactionTask(inputStream, outputStream, terminalScanner);
+                        TransactionTask transactionTask = new TransactionTask(inputStream, outputStream, terminalScanner, clientConfiguration);
                         transactionTask.run();
 
                         if (transactionTask.getSuccessful())

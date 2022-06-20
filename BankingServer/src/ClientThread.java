@@ -76,7 +76,7 @@ public class ClientThread implements Runnable
             while (!_clientSocket.isClosed())
             {
                 // Check for commands
-                String command = Utility.receivePacket(_clientSocketInputStream).trim();
+                String command = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey()).trim();
                 Utility.safeDebugPrintln("User " + _userId + " sent command '" + command + "'.");
                 switch (command)
                 {
@@ -154,8 +154,19 @@ public class ClientThread implements Runnable
      */
     public int runLogin() throws IOException
     {
+
+        try
+        {
+            Thread.sleep(5000);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
+
         // Wait for login packet
-        String loginRequest = Utility.receivePacket(_clientSocketInputStream);
+        String loginRequest = Utility.receivePacket(_clientSocketInputStream,_database.getPrivateKey());
         // Split packet
         String[] loginRequestParts = loginRequest.split(",");
         if (loginRequestParts.length < 2)
@@ -195,8 +206,19 @@ public class ClientThread implements Runnable
      */
     public void runAuthentication() throws IOException
     {
+
+        try
+        {
+            Thread.sleep(5000);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
+
         // Wait for authentication packet
-        String deviceCode = Utility.receivePacket(_clientSocketInputStream);
+        String deviceCode = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey());
 
         // Check device code
         if (_database.userHasDevice(_userId, deviceCode.trim()))
@@ -206,7 +228,10 @@ public class ClientThread implements Runnable
             _deviceAuthenticated = true;
         }
         else
-            Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
+        {
+            //Added Sleep
+
+        }
     }
 
     /**
@@ -214,8 +239,19 @@ public class ClientThread implements Runnable
      */
     public void doRegistration() throws IOException
     {
+        //Added Sleep
+        try
+        {
+            Thread.sleep(5000);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+
+
         // Wait for registration ID part 1 packet
-        String registrationIdPart1 = Utility.receivePacket(_clientSocketInputStream).trim();
+        String registrationIdPart1 = Utility.receivePacket(_clientSocketInputStream,_database.getPrivateKey()).trim();
         if (registrationIdPart1.length() != 4)
             return;
 
@@ -241,7 +277,7 @@ public class ClientThread implements Runnable
         LabEnvironment.sendConfirmationCode(_database.getUserName(_userId), confirmationCode);
 
         // Wait for client confirmation code
-        String clientConfirmationCode = Utility.receivePacket(_clientSocketInputStream).trim();
+        String clientConfirmationCode = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey()).trim();
         if (clientConfirmationCode.equals(confirmationCode))
         {
             // Update database, send success message
@@ -257,8 +293,19 @@ public class ClientThread implements Runnable
      */
     public void handleTransaction() throws IOException
     {
+
+        try
+        {
+            Thread.sleep(3000);
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+        Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
+
         // Wait for transaction packet
-        String transactionRequest = Utility.receivePacket(_clientSocketInputStream);
+        String transactionRequest = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey());
 
         // Split packet
         String[] transactionRequestParts = transactionRequest.split(",");

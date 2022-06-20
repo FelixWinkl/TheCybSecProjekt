@@ -1,6 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.security.PrivateKey;
 import java.util.Random;
 
 /**
@@ -129,11 +130,27 @@ public class Utility
      * @param inputStream The stream where the packet shall be retrieved.
      * @return The payload of the received packet.
      */
-    public static String receivePacket(DataInputStream inputStream) throws IOException
+    public static String receivePacket(DataInputStream inputStream, PrivateKey privateKey) throws IOException
     {
         // Prepare payload buffer
         byte[] payloadEncoded = new byte[inputStream.readInt()];
         inputStream.readFully(payloadEncoded);
+
+        //decrypt
+        String decrypted = GenerateKeys.decryptMessage(payloadEncoded,privateKey);
+
+        // Decode payload
+        String payload = new String(decrypted);
+        safeDebugPrintln("Received '" + payload + "'");
+        return payload;
+    }
+
+    public static String receivePacketNoEncryption(DataInputStream inputStream) throws IOException
+    {
+        // Prepare payload buffer
+        byte[] payloadEncoded = new byte[inputStream.readInt()];
+        inputStream.readFully(payloadEncoded);
+
 
         // Decode payload
         String payload = new String(payloadEncoded);

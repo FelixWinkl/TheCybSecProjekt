@@ -1,0 +1,3 @@
+-fixed checkPassword with String.equals
+- added randomized device code
+- added sleeps in authentication, registration and login

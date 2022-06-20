@@ -35,10 +35,10 @@ public class RegistrationTask extends Task
      * @param deviceCodeFilePathPrefix Base path of the device code file (default is
      *                                 the working directory).
      */
-    public RegistrationTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner, String userName, String deviceCodeFilePathPrefix)
+    public RegistrationTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner, String userName, String deviceCodeFilePathPrefix,  ClientConfiguration clientConfiguration)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream);
+        super(socketInputStream, socketOutputStream,  clientConfiguration);
 
         // Save parameters
         _terminalScanner = terminalScanner;
@@ -71,15 +71,15 @@ public class RegistrationTask extends Task
             // Inform server about authentication
             String prePacket = "authentication";
             System.err.println("Sending authentication header packet...");
-            Utility.sendPacket(_socketOutputStream, prePacket);
+            _communicator.sendPackage(_socketOutputStream, prePacket);
 
             // Send authentication code
             System.err.println("Sending authentication code...");
-            Utility.sendPacket(_socketOutputStream, authenticationCode);
+            _communicator.sendPackage(_socketOutputStream, authenticationCode);
 
             // Wait for confirmation by server
             System.err.println("Waiting for server confirmation...");
-            String serverConfirmation = Utility.receivePacket(_socketInputStream);
+            String serverConfirmation = Utility.receivePacketNoEncryption(_socketInputStream);
             System.err.println("Server response: " + serverConfirmation);
             if (!serverConfirmation.equals("Authentication successful."))
             {
@@ -93,16 +93,16 @@ public class RegistrationTask extends Task
             // Inform server about registration
             String prePacket = "registration";
             System.err.println("Sending registration header packet...");
-            Utility.sendPacket(_socketOutputStream, prePacket);
+            _communicator.sendPackage(_socketOutputStream, prePacket);
 
             // Generate half of registration code
             System.err.println("Generating and sending registration code part 1/2...");
             String registrationCodePart1 = Utility.getRandomString(4);
-            Utility.sendPacket(_socketOutputStream, registrationCodePart1);
+            _communicator.sendPackage(_socketOutputStream, registrationCodePart1);
 
             // Receive other half of registration code from server
             System.err.println("Waiting for registration code part 2/2...");
-            String registrationCodePart2 = Utility.receivePacket(_socketInputStream);
+            String registrationCodePart2 = Utility.receivePacketNoEncryption(_socketInputStream);
             if (registrationCodePart2.length() != 4)
             {
                 // Output response and stop registration process
@@ -118,11 +118,11 @@ public class RegistrationTask extends Task
 
             // Send confirmation code
             System.err.println("Sending confirmation code...");
-            Utility.sendPacket(_socketOutputStream, confirmationCode);
+            _communicator.sendPackage(_socketOutputStream, confirmationCode);
 
             // Wait for confirmation by server
             System.err.println("Waiting for server confirmation...");
-            String serverConfirmation = Utility.receivePacket(_socketInputStream);
+            String serverConfirmation = Utility.receivePacketNoEncryption(_socketInputStream);
             System.err.println("Server response: " + serverConfirmation);
             if (!serverConfirmation.equals("Registration successful."))
                 return;

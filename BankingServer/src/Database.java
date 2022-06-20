@@ -1,5 +1,10 @@
+import javax.crypto.KeyGenerator;
 import javax.json.*;
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -20,6 +25,14 @@ public class Database
      * Contains the user data like name, password in device list.
      */
     private LinkedList<UserData> _users;
+
+
+
+
+    /**
+     * The PrivatKey of the Server.
+     */
+    private PrivateKey privateKey;
 
     /**
      * Loads the given database JSON file.
@@ -76,6 +89,25 @@ public class Database
         Database database = new Database();
         database._databaseFile = databaseFile;
 
+        //genrate RSA public keys.
+        PublicKey publicKey = null;
+        try
+        {
+            GenerateKeys rsaKeyGenerator = new GenerateKeys(1024);
+            rsaKeyGenerator.createKeys();
+            database.privateKey = rsaKeyGenerator.getPrivateKey();
+            publicKey = rsaKeyGenerator.getPublicKey();
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+        }
+        catch (NoSuchProviderException e)
+        {
+            e.printStackTrace();
+        }
+
+
         // Password generator (n decimal digits)
         Random rand = new Random();
         Function<Integer, String> passwordGen = (Integer length) ->
@@ -104,6 +136,7 @@ public class Database
         // Create dummy user
         database._users.add(new UserData("dummy", "0000", 1000, -1));
 
+
         // Save database
         database.Save();
 
@@ -118,12 +151,16 @@ public class Database
             e.printStackTrace();
         }
 
+
+
+
         // Create client configuration file
         try (FileWriter clientConfigurationFileWriter = new FileWriter(clientConfigurationFile))
         {
             // Write default configuration
             clientConfigurationFileWriter.write("{\n");
             clientConfigurationFileWriter.write("    \"version\": \"ITS Banking System v1.2c\"\n");
+            clientConfigurationFileWriter.write("    \"pK:\":  \""+ GenerateKeys.publicKeyToString(publicKey) +"\"\n");
             clientConfigurationFileWriter.write("}\n");
         }
         catch (IOException e)
@@ -326,4 +363,16 @@ public class Database
             historyMap.put(_users.get(entry.x).getName(), entry.y);
         return historyMap;
     }
+
+    /**
+     * Getter for the privat Key
+     * @return the privat key
+     */
+    public PrivateKey getPrivateKey()
+    {
+        return privateKey;
+    }
+
+
+
 }
