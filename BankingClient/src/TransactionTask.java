@@ -41,24 +41,24 @@ public class TransactionTask extends Task
         // Read send parameters
         String recipient;
         int amount;
-        System.out.print("Recipient name: ");
+        Utility.safePrint("Recipient name: ");
         recipient = _terminalScanner.next();
-        System.out.print("Amount of money (1-10): ");
+        Utility.safePrint("Amount of money (1-10): ");
         amount = _terminalScanner.nextInt();
 
         // Inform server about transaction
         String prePacket = "transaction";
-        System.err.println("Sending transaction header packet...");
+        Utility.safeDebugPrintln("Sending transaction header packet...");
         _communicator.sendPackage(_socketOutputStream, prePacket);
 
         // Send packet
         String transactionPacket = recipient + "," + amount;
-        System.err.println("Sending transaction packet...");
+        Utility.safeDebugPrintln("Sending transaction packet...");
         _communicator.sendPackage(_socketOutputStream, transactionPacket);
 
         // Wait for response packet
         String moneySendResponse = Utility.receivePacketNoEncryption(_socketInputStream);
-        System.err.println("Server response: " + moneySendResponse);
+        Utility.safeDebugPrintln("Server response: " + moneySendResponse);
         _successful = moneySendResponse.equals("Transaction successful.");
     }
 

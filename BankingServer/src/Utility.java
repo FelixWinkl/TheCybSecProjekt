@@ -14,12 +14,16 @@ public class Utility
      * DO NOT CHANGE THIS METHOD.
      *
      * @param message The message to be printed.
+     * @param newline Controls whether a line break is inserted after the message.
      */
-    public static void safePrintln(String message)
+    private static void safePrint(String message, boolean newline)
     {
         synchronized (System.out)
         {
-            System.out.println(message);
+            if (newline)
+                System.out.println(message);
+            else
+                System.out.print(message);
         }
 
         // Store output additionally in debug file, if requested
@@ -30,13 +34,36 @@ public class Utility
                 try
                 {
                     LabEnvironment.DEBUG_FILE.write("O: " + message + "\n");
+                    LabEnvironment.DEBUG_FILE.flush();
                 }
                 catch (IOException e)
                 {
-                    e.printStackTrace();
+                    e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
                 }
             }
         }
+    }
+
+    /**
+     * Prints out the given message, while synchronizing between threads.
+     * DO NOT CHANGE THIS METHOD.
+     *
+     * @param message The message to be printed.
+     */
+    public static void safePrint(String message)
+    {
+        safePrint(message, false);
+    }
+
+    /**
+     * Prints out the given message, while synchronizing between threads.
+     * DO NOT CHANGE THIS METHOD.
+     *
+     * @param message The message to be printed.
+     */
+    public static void safePrintln(String message)
+    {
+        safePrint(message, true);
     }
 
     /**
@@ -55,10 +82,11 @@ public class Utility
                 try
                 {
                     LabEnvironment.DEBUG_FILE.write("E: " + message + "\n");
+                    LabEnvironment.DEBUG_FILE.flush();
                 }
                 catch (IOException e)
                 {
-                    e.printStackTrace();
+                    e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
                 }
             }
         }

@@ -60,15 +60,15 @@ public class Database
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (InvalidKeySpecException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (NoSuchAlgorithmException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
     }
 
@@ -110,11 +110,11 @@ public class Database
         }
         catch (NoSuchAlgorithmException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (NoSuchProviderException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
 
 
@@ -158,7 +158,7 @@ public class Database
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
 
 
@@ -175,7 +175,7 @@ public class Database
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
 
         // Create credential file for attacker
@@ -194,7 +194,7 @@ public class Database
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
     }
 
@@ -227,7 +227,7 @@ public class Database
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
     }
 

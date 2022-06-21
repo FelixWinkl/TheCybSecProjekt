@@ -46,11 +46,11 @@ public class ClientConfiguration
             }
             catch (InvalidKeySpecException e)
             {
-                e.printStackTrace();
+                Utility.safeDebugPrintln("error l49: " +e.getMessage());
             }
             catch (NoSuchAlgorithmException e)
             {
-                e.printStackTrace();
+                Utility.safeDebugPrintln("error l53: " +e.getMessage());
             }
 
 
@@ -59,7 +59,7 @@ public class ClientConfiguration
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            Utility.safeDebugPrintln("error l62: " +e.getMessage());
         }
     }
 

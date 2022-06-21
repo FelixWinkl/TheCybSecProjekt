@@ -44,9 +44,9 @@ public class LoginTask extends Task
     {
         // Read credentials
         String password;
-        System.out.print("User: ");
+        Utility.safePrint("User: ");
         _name = _terminalScanner.next();
-        System.out.print("Password: ");
+        Utility.safePrint("Password: ");
         password = _terminalScanner.next();
 
         // Send login packet
@@ -55,7 +55,7 @@ public class LoginTask extends Task
 
         // Wait for response packet
         String loginResponse = Utility.receivePacketNoEncryption(_socketInputStream);
-        System.err.println("Server response: " + loginResponse);
+        Utility.safeDebugPrintln("Server response: " + loginResponse);
         _successful = loginResponse.equals("Login OK.");
     }
 

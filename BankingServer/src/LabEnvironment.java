@@ -49,7 +49,7 @@ public class LabEnvironment
             catch (IOException e)
             {
                 // Show error
-                e.printStackTrace();
+                e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
             }
         }
         DEBUG_FILE = debugFile;
@@ -111,7 +111,7 @@ public class LabEnvironment
             catch (Exception e)
             {
                 // Show error
-                e.printStackTrace();
+                e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
             }
             finally
             {
@@ -169,7 +169,7 @@ public class LabEnvironment
             catch (Exception e)
             {
                 // Show error
-                e.printStackTrace();
+                e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
             }
             finally
             {

@@ -128,7 +128,7 @@ public class ClientThread implements Runnable
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         finally
         {
@@ -142,7 +142,7 @@ public class ClientThread implements Runnable
             }
             catch (IOException e)
             {
-                e.printStackTrace();
+                e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
             }
             Utility.safeDebugPrintln("Cleanup complete.");
         }
@@ -162,7 +162,7 @@ public class ClientThread implements Runnable
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }*/
 
         // Wait for login packet
@@ -213,9 +213,8 @@ public class ClientThread implements Runnable
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }*/
-        Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
 
         // Wait for authentication packet
         String deviceCode = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey());
@@ -247,7 +246,7 @@ public class ClientThread implements Runnable
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         */
 
@@ -306,10 +305,10 @@ public class ClientThread implements Runnable
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         */
-        Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
+
 
         // Wait for transaction packet
         String transactionRequest = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey());

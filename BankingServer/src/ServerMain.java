@@ -48,7 +48,7 @@ public class ServerMain
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
 
         // Check lab mode
@@ -106,7 +106,7 @@ public class ServerMain
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
     }
 }

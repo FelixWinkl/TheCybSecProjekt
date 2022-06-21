@@ -24,24 +24,24 @@ public class BalanceTask extends Task
     {
         // Send request packet
         String requestPacket = "balance";
-        System.err.println("Sending balance request packet...");
+        Utility.safeDebugPrintln("Sending balance request packet...");
         _communicator.sendPackage(_socketOutputStream, requestPacket);
 
         // Read total money
-        System.err.println("Waiting for first balance response packet...");
+        Utility.safeDebugPrintln("Waiting for first balance response packet...");
         String balanceMoneyResponse = Utility.receivePacketNoEncryption(_socketInputStream);
         int balanceMoney = Integer.parseInt(balanceMoneyResponse);
-        System.out.println("Current money: " + balanceMoney);
+        Utility.safePrintln("Current money: " + balanceMoney);
 
         // Wait for count response packet
-        System.err.println("Waiting for balance count packet...");
+        Utility.safeDebugPrintln("Waiting for balance count packet...");
         String balanceCountResponse = Utility.receivePacketNoEncryption(_socketInputStream);
         int balanceCount = Integer.parseInt(balanceCountResponse);
-        System.err.println("Balance entry count: " + balanceCount);
+        Utility.safeDebugPrintln("Balance entry count: " + balanceCount);
 
         // Read entries
-        System.err.println("Reading balance entries...");
-        System.out.println("Past transactions:");
+        Utility.safeDebugPrintln("Reading balance entries...");
+        Utility.safePrintln("Past transactions:");
         for (int i = 0; i < balanceCount; ++i)
         {
             // Receive & split entry data
@@ -49,7 +49,7 @@ public class BalanceTask extends Task
             String[] balanceEntryParts = balanceEntry.split(",");
             if (balanceEntryParts.length < 2)
             {
-                System.err.println("Received invalid balance entry packet from server: " + balanceEntry);
+                Utility.safeDebugPrintln("Received invalid balance entry packet from server: " + balanceEntry);
                 return;
             }
             String name = balanceEntryParts[0].trim();

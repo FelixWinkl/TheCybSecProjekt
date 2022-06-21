@@ -118,29 +118,29 @@ public class GenerateKeys {
             encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
             byte[] secretMessageBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
             byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
-            System.out.println(encryptedMessageBytes.length);
+            Utility.safePrintln(String.valueOf(encryptedMessageBytes.length));
             String encodedString = Base64.getEncoder().encodeToString(encryptedMessageBytes);
             encryptedMessage = encodedString;
         }
         catch (InvalidKeyException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (NoSuchPaddingException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (NoSuchAlgorithmException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (IllegalBlockSizeException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (BadPaddingException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
 
 
@@ -160,29 +160,29 @@ public class GenerateKeys {
             Cipher decryptCipher = Cipher.getInstance("RSA");
             decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
             byte[] encryptedMessageBytes = Base64.getDecoder().decode(encryptedMessage);;
-            System.out.println(encryptedMessageBytes.length);
+            Utility.safePrintln(String.valueOf(encryptedMessageBytes.length));
             byte[] decryptedMessageBytes = decryptCipher.doFinal(encryptedMessageBytes);
             decryptedMessage = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
         }
         catch (InvalidKeyException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (NoSuchPaddingException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (IllegalBlockSizeException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (NoSuchAlgorithmException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
         catch (BadPaddingException e)
         {
-            e.printStackTrace();
+            e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
 
         return  decryptedMessage;
@@ -207,14 +207,14 @@ public class GenerateKeys {
         String decrypted = decryptMessage(encrypted,gk.getPrivateKey());
 
 
-        System.out.println(decrypted);
+        Utility.safePrintln(decrypted);
 
 
 
 
 
         if (publicKey.equals(publicKeyBack)){
-            System.out.println("succesfull");
+            Utility.safePrintln("succesfull");
         }
         /*
         try {

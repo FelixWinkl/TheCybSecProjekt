@@ -56,7 +56,7 @@ public class RegistrationTask extends Task
         if (new File(deviceCodeFilename.toString()).exists())
         {
             // Read device authentication code from file
-            System.err.println("Authentication file detected, reading device code...");
+            Utility.safeDebugPrintln("Authentication file detected, reading device code...");
             String authenticationCode;
             try (Scanner deviceCodeFileScanner = new Scanner(new FileReader(deviceCodeFilename.toString())))
             {
@@ -64,27 +64,27 @@ public class RegistrationTask extends Task
             }
             catch (IOException e)
             {
-                e.printStackTrace();
+                Utility.safeDebugPrintln("error l67: " +e.getMessage());
                 return;
             }
 
             // Inform server about authentication
             String prePacket = "authentication";
-            System.err.println("Sending authentication header packet...");
+            Utility.safeDebugPrintln("Sending authentication header packet...");
             _communicator.sendPackage(_socketOutputStream, prePacket);
 
             // Send authentication code
-            System.err.println("Sending authentication code...");
+            Utility.safeDebugPrintln("Sending authentication code...");
             _communicator.sendPackage(_socketOutputStream, authenticationCode);
 
             // Wait for confirmation by server
-            System.err.println("Waiting for server confirmation...");
+            Utility.safeDebugPrintln("Waiting for server confirmation...");
             String serverConfirmation = Utility.receivePacketNoEncryption(_socketInputStream);
-            System.err.println("Server response: " + serverConfirmation);
+            Utility.safeDebugPrintln("Server response: " + serverConfirmation);
             if (!serverConfirmation.equals("Authentication successful."))
             {
                 // Show error
-                System.out.println("Authentication failed. Maybe the device code file is too old or invalid?");
+                Utility.safePrintln("Authentication failed. Maybe the device code file is too old or invalid?");
                 return;
             }
         }
@@ -92,38 +92,38 @@ public class RegistrationTask extends Task
         {
             // Inform server about registration
             String prePacket = "registration";
-            System.err.println("Sending registration header packet...");
+            Utility.safeDebugPrintln("Sending registration header packet...");
             _communicator.sendPackage(_socketOutputStream, prePacket);
 
             // Generate half of registration code
-            System.err.println("Generating and sending registration code part 1/2...");
+            Utility.safeDebugPrintln("Generating and sending registration code part 1/2...");
             String registrationCodePart1 = Utility.getRandomString(4);
             _communicator.sendPackage(_socketOutputStream, registrationCodePart1);
 
             // Receive other half of registration code from server
-            System.err.println("Waiting for registration code part 2/2...");
+            Utility.safeDebugPrintln("Waiting for registration code part 2/2...");
             String registrationCodePart2 = Utility.receivePacketNoEncryption(_socketInputStream);
             if (registrationCodePart2.length() != 4)
             {
                 // Output response and stop registration process
-                System.err.println("Received invalid registration code part from server: " + registrationCodePart2);
+                Utility.safeDebugPrintln("Received invalid registration code part from server: " + registrationCodePart2);
                 return;
             }
             String registrationCode = registrationCodePart1 + registrationCodePart2;
-            System.err.println("Received full registration code.");
+            Utility.safeDebugPrintln("Received full registration code.");
 
             // Read confirmation code that the server should have sent via email
-            System.out.print("Confirmation code: ");
+            Utility.safePrint("Confirmation code: ");
             String confirmationCode = _terminalScanner.next();
 
             // Send confirmation code
-            System.err.println("Sending confirmation code...");
+            Utility.safeDebugPrintln("Sending confirmation code...");
             _communicator.sendPackage(_socketOutputStream, confirmationCode);
 
             // Wait for confirmation by server
-            System.err.println("Waiting for server confirmation...");
+            Utility.safeDebugPrintln("Waiting for server confirmation...");
             String serverConfirmation = Utility.receivePacketNoEncryption(_socketInputStream);
-            System.err.println("Server response: " + serverConfirmation);
+            Utility.safeDebugPrintln("Server response: " + serverConfirmation);
             if (!serverConfirmation.equals("Registration successful."))
                 return;
 
@@ -134,7 +134,7 @@ public class RegistrationTask extends Task
             }
             catch (IOException e)
             {
-                e.printStackTrace();
+                Utility.safeDebugPrintln("error l137: " +e.getMessage());
                 return;
             }
         }
