@@ -1,7 +1,10 @@
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Random;
 
 /**
@@ -109,10 +112,10 @@ public class Utility
      * @param outputStream The stream the packet shall be written to.
      * @param payload      The string payload to be sent.
      */
-    public static void sendPacket(DataOutputStream outputStream, String payload) throws IOException
+    private static void sendPacket(DataOutputStream outputStream, String payload) throws IOException
     {
         // Debug output
-        safeDebugPrintln("Sending '" + payload + "'");
+        safeDebugPrintln("Sending encrypted '" + payload + "'");
 
         // Convert payload to byte array
         byte[] payloadEncoded = payload.getBytes();
@@ -132,6 +135,31 @@ public class Utility
 
         // Write payload
         outputStream.write(payloadEncoded);
+    }
+
+    /**
+     * Writes the given string payload as a packet into the given output stream encrypted with AES.
+     *
+     * @param outputStream The stream the packet shall be written to.
+     * @param payload      The string payload to be sent.
+     */
+    public static void sendPacketAES(DataOutputStream outputStream, String payload, SecretKey symmetricKey) throws IOException
+    {
+        safeDebugPrintln("Sending'" + payload + "'");
+        IvParameterSpec iv =  AESHelper.generateIv();
+        String encryptedPayload = AESHelper.encrypt(payload,symmetricKey,iv);
+        encryptedPayload = AESHelper.ivToString(iv) + " " + encryptedPayload;
+        sendPacket(outputStream, encryptedPayload);
+    }
+
+    /**
+     * Sends package RSA encrypted.
+     * @param socketOutputStream
+     */
+    public static void sendRSAPackage(DataOutputStream socketOutputStream, String message, PublicKey serverPublicKEy) throws IOException
+    {
+        String encryptedString = GenerateKeys.encryptMessage(message,serverPublicKEy);
+        Utility.sendPacket(socketOutputStream, encryptedString);
     }
 
     /**
@@ -158,7 +186,7 @@ public class Utility
      * @param inputStream The stream where the packet shall be retrieved.
      * @return The payload of the received packet.
      */
-    public static String receivePacket(DataInputStream inputStream, PrivateKey privateKey) throws IOException
+    public static String receivePacketRSA(DataInputStream inputStream, PrivateKey privateKey) throws IOException
     {
         // Prepare payload buffer
         byte[] payloadEncoded = new byte[inputStream.readInt()];
@@ -172,7 +200,31 @@ public class Utility
         safeDebugPrintln("Received '" + encrypted + "'");
         return encrypted;
     }
+    /**
+     * Receives the next packet from the given input stream.
+     *
+     * @param inputStream The stream where the packet shall be retrieved.
+     * @return The payload of the received packet.
+     */
+    public static String receivePacketAES(DataInputStream inputStream, SecretKey symmetricKey) throws IOException
+    {
+        // Prepare payload buffer
+        byte[] payloadEncoded = new byte[inputStream.readInt()];
+        inputStream.readFully(payloadEncoded);
 
+        // Decode payload
+        String payload = new String(payloadEncoded);
+
+        String ivString = payload.split(" ")[0];
+        String msgString = payload.split(" ")[1];
+        IvParameterSpec iv= AESHelper.stringToIv(ivString);
+        String encrypted = AESHelper.decrypt(msgString,symmetricKey,iv);
+
+        safeDebugPrintln("Received '" + encrypted + "'");
+        return encrypted;
+    }
+
+    /*
     public static String receivePacketNoEncryption(DataInputStream inputStream) throws IOException
     {
         // Prepare payload buffer
@@ -184,7 +236,7 @@ public class Utility
         String payload = new String(payloadEncoded);
         safeDebugPrintln("Received '" + payload + "'");
         return payload;
-    }
+    }*/
 
     /**
      * Receives the next packet from the given input stream.

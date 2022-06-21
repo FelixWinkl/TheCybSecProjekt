@@ -1,3 +1,4 @@
+import javax.crypto.SecretKey;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -13,10 +14,10 @@ public class BalanceTask extends Task
      * @param socketInputStream  The socket input stream.
      * @param socketOutputStream The socket output stream.
      */
-    public BalanceTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream,  ClientConfiguration clientConfiguration)
+    public BalanceTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, ClientConfiguration clientConfiguration, SecretKey aesKey)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream, clientConfiguration);
+        super(socketInputStream, socketOutputStream, clientConfiguration, aesKey);
     }
 
     @Override
@@ -25,17 +26,17 @@ public class BalanceTask extends Task
         // Send request packet
         String requestPacket = "balance";
         Utility.safeDebugPrintln("Sending balance request packet...");
-        _communicator.sendPackage(_socketOutputStream, requestPacket);
+        Utility.sendPacketAES(_socketOutputStream, requestPacket,_config.get_symmetricKey());
 
         // Read total money
         Utility.safeDebugPrintln("Waiting for first balance response packet...");
-        String balanceMoneyResponse = Utility.receivePacketNoEncryption(_socketInputStream);
+        String balanceMoneyResponse = Utility.receivePacketAES(_socketInputStream, _config.get_symmetricKey());
         int balanceMoney = Integer.parseInt(balanceMoneyResponse);
         Utility.safePrintln("Current money: " + balanceMoney);
 
         // Wait for count response packet
         Utility.safeDebugPrintln("Waiting for balance count packet...");
-        String balanceCountResponse = Utility.receivePacketNoEncryption(_socketInputStream);
+        String balanceCountResponse = Utility.receivePacketAES(_socketInputStream, _config.get_symmetricKey());
         int balanceCount = Integer.parseInt(balanceCountResponse);
         Utility.safeDebugPrintln("Balance entry count: " + balanceCount);
 
@@ -45,7 +46,7 @@ public class BalanceTask extends Task
         for (int i = 0; i < balanceCount; ++i)
         {
             // Receive & split entry data
-            String balanceEntry = Utility.receivePacketNoEncryption(_socketInputStream);
+            String balanceEntry = Utility.receivePacketAES(_socketInputStream,_config.get_symmetricKey());
             String[] balanceEntryParts = balanceEntry.split(",");
             if (balanceEntryParts.length < 2)
             {

@@ -1,3 +1,4 @@
+import javax.crypto.SecretKey;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -25,7 +26,7 @@ public abstract class Task
     /**
      * Obejct which handles all communictaion with the server.
      */
-    protected Communicator _communicator;
+    protected Config _config;
 
     /**
      * Creates a new task.
@@ -33,13 +34,13 @@ public abstract class Task
      * @param socketInputStream  The socket input stream.
      * @param socketOutputStream The socket output stream.
      */
-    public Task(DataInputStream socketInputStream, DataOutputStream socketOutputStream, ClientConfiguration clientConfiguration)
+    public Task(DataInputStream socketInputStream, DataOutputStream socketOutputStream, ClientConfiguration clientConfiguration, SecretKey symmetricKey)
     {
         // Save parameters
         _socketInputStream = socketInputStream;
         _socketOutputStream = socketOutputStream;
         _clientConfiguration = clientConfiguration;
-        _communicator = new Communicator(clientConfiguration.get_serverPublicKey());
+        _config = new Config(clientConfiguration.get_serverPublicKey(),symmetricKey);
     }
 
     /**

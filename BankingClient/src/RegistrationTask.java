@@ -1,3 +1,4 @@
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,10 +36,10 @@ public class RegistrationTask extends Task
      * @param deviceCodeFilePathPrefix Base path of the device code file (default is
      *                                 the working directory).
      */
-    public RegistrationTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner, String userName, String deviceCodeFilePathPrefix,  ClientConfiguration clientConfiguration)
+    public RegistrationTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner, String userName, String deviceCodeFilePathPrefix, ClientConfiguration clientConfiguration, SecretKey aesKey)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream,  clientConfiguration);
+        super(socketInputStream, socketOutputStream,  clientConfiguration, aesKey);
 
         // Save parameters
         _terminalScanner = terminalScanner;
@@ -71,15 +72,15 @@ public class RegistrationTask extends Task
             // Inform server about authentication
             String prePacket = "authentication";
             Utility.safeDebugPrintln("Sending authentication header packet...");
-            _communicator.sendPackage(_socketOutputStream, prePacket);
+            Utility.sendPacketAES(_socketOutputStream, prePacket, _config.get_symmetricKey());
 
             // Send authentication code
             Utility.safeDebugPrintln("Sending authentication code...");
-            _communicator.sendPackage(_socketOutputStream, authenticationCode);
+            Utility.sendPacketAES(_socketOutputStream, authenticationCode, _config.get_symmetricKey());
 
             // Wait for confirmation by server
             Utility.safeDebugPrintln("Waiting for server confirmation...");
-            String serverConfirmation = Utility.receivePacketNoEncryption(_socketInputStream);
+            String serverConfirmation = Utility.receivePacketAES(_socketInputStream, _config.get_symmetricKey());
             Utility.safeDebugPrintln("Server response: " + serverConfirmation);
             if (!serverConfirmation.equals("Authentication successful."))
             {
@@ -93,16 +94,16 @@ public class RegistrationTask extends Task
             // Inform server about registration
             String prePacket = "registration";
             Utility.safeDebugPrintln("Sending registration header packet...");
-            _communicator.sendPackage(_socketOutputStream, prePacket);
+            Utility.sendPacketAES(_socketOutputStream, prePacket, _config.get_symmetricKey());
 
             // Generate half of registration code
             Utility.safeDebugPrintln("Generating and sending registration code part 1/2...");
             String registrationCodePart1 = Utility.getRandomString(4);
-            _communicator.sendPackage(_socketOutputStream, registrationCodePart1);
+            Utility.sendPacketAES(_socketOutputStream, registrationCodePart1, _config.get_symmetricKey());
 
             // Receive other half of registration code from server
             Utility.safeDebugPrintln("Waiting for registration code part 2/2...");
-            String registrationCodePart2 = Utility.receivePacketNoEncryption(_socketInputStream);
+            String registrationCodePart2 = Utility.receivePacketAES(_socketInputStream, _config.get_symmetricKey());
             if (registrationCodePart2.length() != 4)
             {
                 // Output response and stop registration process
@@ -118,11 +119,11 @@ public class RegistrationTask extends Task
 
             // Send confirmation code
             Utility.safeDebugPrintln("Sending confirmation code...");
-            _communicator.sendPackage(_socketOutputStream, confirmationCode);
+            Utility.sendPacketAES(_socketOutputStream, confirmationCode, _config.get_symmetricKey());
 
             // Wait for confirmation by server
             Utility.safeDebugPrintln("Waiting for server confirmation...");
-            String serverConfirmation = Utility.receivePacketNoEncryption(_socketInputStream);
+            String serverConfirmation = Utility.receivePacketAES(_socketInputStream, _config.get_symmetricKey());
             Utility.safeDebugPrintln("Server response: " + serverConfirmation);
             if (!serverConfirmation.equals("Registration successful."))
                 return;

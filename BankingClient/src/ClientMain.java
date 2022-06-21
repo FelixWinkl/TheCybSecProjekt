@@ -1,3 +1,4 @@
+import javax.crypto.SecretKey;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class ClientMain
                 return;
             }
             String userName = loginTask.getName();
+            SecretKey symmetricAESKey = loginTask.getSymmetricKey();
 
             // Run until exit
             boolean deviceAuthenticated = false;
@@ -66,7 +68,7 @@ public class ClientMain
                     case 'b' -> {
                         // Run balance retrieval task
                         Utility.safeDebugPrintln("Starting balance task...");
-                        new BalanceTask(inputStream, outputStream, clientConfiguration).run();
+                        new BalanceTask(inputStream, outputStream, clientConfiguration,symmetricAESKey).run();
                     }
                     case 't' -> {
                         // Check for device authentication
@@ -74,7 +76,7 @@ public class ClientMain
                         {
                             // Run registration
                             Utility.safeDebugPrintln("Starting registration task...");
-                            RegistrationTask registrationTask = new RegistrationTask(inputStream, outputStream, terminalScanner, userName, args[3], clientConfiguration);
+                            RegistrationTask registrationTask = new RegistrationTask(inputStream, outputStream, terminalScanner, userName, args[3], clientConfiguration, symmetricAESKey);
                             registrationTask.run();
                             if (!registrationTask.getSuccessful())
                                 break;
@@ -83,7 +85,7 @@ public class ClientMain
 
                         // Run transaction task
                         Utility.safeDebugPrintln("Starting transaction task...");
-                        TransactionTask transactionTask = new TransactionTask(inputStream, outputStream, terminalScanner, clientConfiguration);
+                        TransactionTask transactionTask = new TransactionTask(inputStream, outputStream, terminalScanner, clientConfiguration, symmetricAESKey);
                         transactionTask.run();
 
                         if (transactionTask.getSuccessful())

@@ -1,11 +1,14 @@
+import javax.crypto.SecretKey;
+import javax.management.remote.rmi.RMIConnectionImpl_Stub;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Handles a client connection.
@@ -41,6 +44,12 @@ public class ClientThread implements Runnable
      * Determines whether the client device has been authenticated.
      */
     private boolean _deviceAuthenticated = false;
+
+
+    /**
+     * Secret key for this communictaion, reciced in login
+     */
+    private SecretKey _symmetricKey;
 
     /**
      * Creates a new thread that processes the given client socket.
@@ -78,7 +87,7 @@ public class ClientThread implements Runnable
             while (!_clientSocket.isClosed())
             {
                 // Check for commands
-                String command = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey()).trim();
+                String command = Utility.receivePacketAES(_clientSocketInputStream, _symmetricKey).trim();
                 Utility.safeDebugPrintln("User " + _userId + " sent command '" + command + "'.");
                 switch (command)
                 {
@@ -117,7 +126,7 @@ public class ClientThread implements Runnable
                     {
                         // This command does not exist, notify client
                         Utility.safeDebugPrintln("Command is invalid.");
-                        Utility.sendPacket(_clientSocketOutputStream, "Invalid command:" + command);
+                        Utility.sendPacketAES(_clientSocketOutputStream, "Invalid command:" + command, _symmetricKey);
                         break;
                     }
                 }
@@ -156,23 +165,46 @@ public class ClientThread implements Runnable
      */
     public int runLogin() throws IOException
     {
-        /*
+
+
         try
         {
-            //Thread.sleep(5000);
+            Thread.sleep(4000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
-        }*/
+        }
+        //get SecretKey
+        String symmetricKeyTransaction = Utility.receivePacketRSA(_clientSocketInputStream, _database.get_privateKey());
+        if (symmetricKeyTransaction.startsWith("OUR_KEY:")){
+            String key = symmetricKeyTransaction.split(" ")[1];
+            try
+            {
+                _symmetricKey = AESHelper.stringToSecreteKey(key);
+            }
+            catch (InvalidKeySpecException e)
+            {
+                e.printStackTrace();
+            }
+            catch (NoSuchAlgorithmException e)
+            {
+                e.printStackTrace();
+            }
+            // System.out.println("server:"  + symmetricKey.toString());
+        }else {
+            Utility.sendPacketAES(_clientSocketOutputStream, "No symmetric Key provided", _symmetricKey);
+            return -1;
+        }
+
 
         // Wait for login packet
-        String loginRequest = Utility.receivePacket(_clientSocketInputStream,_database.get_privateKey());
+        String loginRequest = Utility.receivePacketAES(_clientSocketInputStream,_symmetricKey);
         // Split packet
         String[] loginRequestParts = loginRequest.split(",");
         if (loginRequestParts.length < 2)
         {
-            Utility.sendPacket(_clientSocketOutputStream, "Invalid login packet format.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Invalid login packet format.",_symmetricKey);
             return -1;
         }
         String name = loginRequestParts[0].trim();
@@ -181,9 +213,9 @@ public class ClientThread implements Runnable
         // Check login
         int userId = _database.verifyLogin(name, password);
         if (userId == -1)
-            Utility.sendPacket(_clientSocketOutputStream, "Login invalid.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Login invalid.",_symmetricKey);
         else
-            Utility.sendPacket(_clientSocketOutputStream, "Login OK.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Login OK.", _symmetricKey);
         return userId;
     }
 
@@ -193,38 +225,37 @@ public class ClientThread implements Runnable
     public void sendBalance() throws IOException
     {
         // First send current money
-        Utility.sendPacket(_clientSocketOutputStream, Integer.toString(_database.getMoney(_userId)));
+        Utility.sendPacketAES(_clientSocketOutputStream, Integer.toString(_database.getMoney(_userId)),_symmetricKey);
 
         // Then send the transaction history
         Map<String, Integer> balance = _database.getUserMoneyHistory(_userId);
-        Utility.sendPacket(_clientSocketOutputStream, Integer.toString(balance.size()));
+        Utility.sendPacketAES(_clientSocketOutputStream, Integer.toString(balance.size()),_symmetricKey);
         for (Map.Entry<String, Integer> entry : balance.entrySet())
-            Utility.sendPacket(_clientSocketOutputStream, entry.getKey() + "," + entry.getValue());
+            Utility.sendPacketAES(_clientSocketOutputStream, entry.getKey() + "," + entry.getValue(),_symmetricKey);
     }
-
     /**
      * Executes the authentication protocol.
      */
     public void runAuthentication() throws IOException
     {
-        /*
+
         try
         {
-           // Thread.sleep(5000);
+            Thread.sleep(2000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
-        }*/
+        }
 
         // Wait for authentication packet
-        String deviceCode = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey());
+        String deviceCode = Utility.receivePacketAES(_clientSocketInputStream, _symmetricKey);
 
         // Check device code
         if (_database.userHasDevice(_userId, deviceCode.trim()))
         {
             // Send success message
-            Utility.sendPacket(_clientSocketOutputStream, "Authentication successful.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Authentication successful.",_symmetricKey);
             _deviceAuthenticated = true;
         }
         else
@@ -239,26 +270,27 @@ public class ClientThread implements Runnable
      */
     public void doRegistration() throws IOException
     {
-        /*
+
         //Added Sleep
+
         try
         {
-            //Thread.sleep(5000);
+            Thread.sleep(3000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
         }
-        */
+
 
         // Wait for registration ID part 1 packet
-        String registrationIdPart1 = Utility.receivePacket(_clientSocketInputStream,_database.get_privateKey()).trim();
+        String registrationIdPart1 = Utility.receivePacketAES(_clientSocketInputStream,_symmetricKey).trim();
         if (registrationIdPart1.length() != 4)
             return;
 
         // Generate and send registration ID part 2 packet
         String registrationIdPart2 = Utility.getRandomString(4);
-        Utility.sendPacket(_clientSocketOutputStream, registrationIdPart2);
+        Utility.sendPacketAES(_clientSocketOutputStream, registrationIdPart2,_symmetricKey);
         String registrationId = registrationIdPart1 + registrationIdPart2;
         _database.addUserDevice(_userId, registrationId);
 
@@ -281,15 +313,15 @@ public class ClientThread implements Runnable
         LabEnvironment.sendConfirmationCode(_database.getUserName(_userId), confirmationCode);
 
         // Wait for client confirmation code
-        String clientConfirmationCode = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey()).trim();
+        String clientConfirmationCode = Utility.receivePacketAES(_clientSocketInputStream, _symmetricKey).trim();
         if (clientConfirmationCode.equals(confirmationCode))
         {
             // Update database, send success message
-            Utility.sendPacket(_clientSocketOutputStream, "Registration successful.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Registration successful.",_symmetricKey);
             _deviceAuthenticated = true;
         }
         else
-            Utility.sendPacket(_clientSocketOutputStream, "Registration failed.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Registration failed.",_symmetricKey);
     }
 
     /**
@@ -300,23 +332,23 @@ public class ClientThread implements Runnable
         /*
         try
         {
-            Thread.sleep(3000);
+            Thread.sleep(2000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace(); Utility.safeDebugPrintln("error: " +e.getMessage());
-        }
-        */
+        }*/
+
 
 
         // Wait for transaction packet
-        String transactionRequest = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey());
+        String transactionRequest = Utility.receivePacketAES(_clientSocketInputStream, _symmetricKey);
 
         // Split packet
         String[] transactionRequestParts = transactionRequest.split(",");
         if (transactionRequestParts.length != 2)
         {
-            Utility.sendPacket(_clientSocketOutputStream, "Invalid transaction packet format.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Invalid transaction packet format.",_symmetricKey);
             return;
         }
         String recipient = transactionRequestParts[0].trim();
@@ -334,14 +366,14 @@ public class ClientThread implements Runnable
         }
         catch (NumberFormatException e)
         {
-            Utility.sendPacket(_clientSocketOutputStream, "Invalid number format.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Invalid number format.",_symmetricKey);
             return;
         }
 
         // Send money
         if (_database.sendMoney(_userId, recipient, amount))
-            Utility.sendPacket(_clientSocketOutputStream, "Transaction successful.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Transaction successful.",_symmetricKey);
         else
-            Utility.sendPacket(_clientSocketOutputStream, "Transaction failed.");
+            Utility.sendPacketAES(_clientSocketOutputStream, "Transaction failed.",_symmetricKey);
     }
 }

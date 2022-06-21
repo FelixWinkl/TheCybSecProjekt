@@ -1,6 +1,8 @@
+import javax.crypto.SecretKey;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
 /**
@@ -22,6 +24,11 @@ public class LoginTask extends Task
     private String _name = "";
 
     /**
+     * the newly created AED Key
+     */
+    SecretKey symmetricKey = null;
+
+    /**
      * Creates a new login task.
      *
      * @param socketInputStream  The socket input stream.
@@ -31,7 +38,7 @@ public class LoginTask extends Task
     public LoginTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner,  ClientConfiguration clientConfiguration)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream, clientConfiguration);
+        super(socketInputStream, socketOutputStream, clientConfiguration, null);
 
         // Save parameters
         _terminalScanner = terminalScanner;
@@ -42,10 +49,24 @@ public class LoginTask extends Task
      */
     public void run() throws IOException
     {
+        //symmetric Key vereinbaren
+
+        try
+        {
+            symmetricKey = AESHelper.generateKey(128);
+            String message = "OUR_KEY: " + AESHelper.secretKeyToString(symmetricKey);
+            //System.out.println("login:"  + symmetricKey.toString());
+            Utility.sendRSAPackage(_socketOutputStream, message, _config.get_serverPublicKey());
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            e.printStackTrace();
+        }
+
+
+
+
         // Read credentials
-        _communicator.sendPackage(_socketOutputStream, loginPacket);
-
-
         String password;
         Utility.safePrint("User: ");
         _name = _terminalScanner.next();
@@ -54,10 +75,10 @@ public class LoginTask extends Task
 
         // Send login packet
         String loginPacket = _name + "," + password;
-        _communicator.sendPackage(_socketOutputStream, loginPacket);
+        Utility.sendPacketAES(_socketOutputStream, loginPacket,symmetricKey);
 
         // Wait for response packet
-        String loginResponse = Utility.receivePacketNoEncryption(_socketInputStream);
+        String loginResponse = Utility.receivePacketAES(_socketInputStream,symmetricKey);
         Utility.safeDebugPrintln("Server response: " + loginResponse);
         _successful = loginResponse.equals("Login OK.");
     }
@@ -80,5 +101,10 @@ public class LoginTask extends Task
     public String getName()
     {
         return _name;
+    }
+
+    public SecretKey getSymmetricKey()
+    {
+        return symmetricKey;
     }
 }

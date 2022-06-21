@@ -1,3 +1,4 @@
+import javax.crypto.SecretKey;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -24,10 +25,10 @@ public class TransactionTask extends Task
      * @param socketOutputStream The socket output stream.
      * @param terminalScanner    A scanner object to read terminal input.
      */
-    public TransactionTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner,  ClientConfiguration clientConfiguration)
+    public TransactionTask(DataInputStream socketInputStream, DataOutputStream socketOutputStream, Scanner terminalScanner, ClientConfiguration clientConfiguration, SecretKey aesKEy)
     {
         // Call superclass constructor
-        super(socketInputStream, socketOutputStream, clientConfiguration);
+        super(socketInputStream, socketOutputStream, clientConfiguration, aesKEy);
 
         // Save parameters
         _terminalScanner = terminalScanner;
@@ -49,15 +50,15 @@ public class TransactionTask extends Task
         // Inform server about transaction
         String prePacket = "transaction";
         Utility.safeDebugPrintln("Sending transaction header packet...");
-        _communicator.sendPackage(_socketOutputStream, prePacket);
+        Utility.sendPacketAES(_socketOutputStream, prePacket, _config.get_symmetricKey());
 
         // Send packet
         String transactionPacket = recipient + "," + amount;
         Utility.safeDebugPrintln("Sending transaction packet...");
-        _communicator.sendPackage(_socketOutputStream, transactionPacket);
+        Utility.sendPacketAES(_socketOutputStream, transactionPacket, _config.get_symmetricKey());
 
         // Wait for response packet
-        String moneySendResponse = Utility.receivePacketNoEncryption(_socketInputStream);
+        String moneySendResponse = Utility.receivePacketAES(_socketInputStream, _config.get_symmetricKey());
         Utility.safeDebugPrintln("Server response: " + moneySendResponse);
         _successful = moneySendResponse.equals("Transaction successful.");
     }
