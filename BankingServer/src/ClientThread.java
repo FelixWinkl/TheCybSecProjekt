@@ -3,6 +3,7 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Random;
 
@@ -264,17 +265,15 @@ public class ClientThread implements Runnable
         // Send confirmation code via e-mail or display it in server terminal
         //String confirmationCode = registrationId.substring(2, 6);
         StringBuilder builder = new StringBuilder();
+        SecureRandom r = new SecureRandom();
         for(int i = 0; i < 4; i++){
-            if(Math.random()<0.4)
+            if(r.nextInt(100)<40)
             {
-                Random r = new Random();
                 builder.append((char) ((int) (r.nextInt(26) + 'a')));
-            }else if(Math.random()<0.8){
-                Random r = new Random();
+            }else if(r.nextInt(100)<80){
                 builder.append((char) ((int) (r.nextInt(26) + 'A')));
             }
             else{
-                Random r = new Random();
                 builder.append((char) ((int) (r.nextInt(10) + '0')));
             }
         }

@@ -43,6 +43,9 @@ public class LoginTask extends Task
     public void run() throws IOException
     {
         // Read credentials
+        _communicator.sendPackage(_socketOutputStream, loginPacket);
+
+
         String password;
         Utility.safePrint("User: ");
         _name = _terminalScanner.next();
