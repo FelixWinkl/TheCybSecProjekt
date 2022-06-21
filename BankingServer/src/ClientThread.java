@@ -4,6 +4,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Handles a client connection.
@@ -76,7 +77,7 @@ public class ClientThread implements Runnable
             while (!_clientSocket.isClosed())
             {
                 // Check for commands
-                String command = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey()).trim();
+                String command = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey()).trim();
                 Utility.safeDebugPrintln("User " + _userId + " sent command '" + command + "'.");
                 switch (command)
                 {
@@ -154,19 +155,18 @@ public class ClientThread implements Runnable
      */
     public int runLogin() throws IOException
     {
-
+        /*
         try
         {
-            Thread.sleep(5000);
+            //Thread.sleep(5000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace();
-        }
-        Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
+        }*/
 
         // Wait for login packet
-        String loginRequest = Utility.receivePacket(_clientSocketInputStream,_database.getPrivateKey());
+        String loginRequest = Utility.receivePacket(_clientSocketInputStream,_database.get_privateKey());
         // Split packet
         String[] loginRequestParts = loginRequest.split(",");
         if (loginRequestParts.length < 2)
@@ -206,19 +206,19 @@ public class ClientThread implements Runnable
      */
     public void runAuthentication() throws IOException
     {
-
+        /*
         try
         {
-            Thread.sleep(5000);
+           // Thread.sleep(5000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace();
-        }
+        }*/
         Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
 
         // Wait for authentication packet
-        String deviceCode = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey());
+        String deviceCode = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey());
 
         // Check device code
         if (_database.userHasDevice(_userId, deviceCode.trim()))
@@ -239,19 +239,20 @@ public class ClientThread implements Runnable
      */
     public void doRegistration() throws IOException
     {
+        /*
         //Added Sleep
         try
         {
-            Thread.sleep(5000);
+            //Thread.sleep(5000);
         }
         catch (InterruptedException e)
         {
             e.printStackTrace();
         }
-
+        */
 
         // Wait for registration ID part 1 packet
-        String registrationIdPart1 = Utility.receivePacket(_clientSocketInputStream,_database.getPrivateKey()).trim();
+        String registrationIdPart1 = Utility.receivePacket(_clientSocketInputStream,_database.get_privateKey()).trim();
         if (registrationIdPart1.length() != 4)
             return;
 
@@ -265,19 +266,24 @@ public class ClientThread implements Runnable
         //String confirmationCode = registrationId.substring(2, 6);
         StringBuilder builder = new StringBuilder();
         for(int i = 0; i < 4; i++){
-            if(Math.random()<0.8)
+            if(Math.random()<0.4)
             {
-                builder.append(Integer.toString((char) ((int) (Math.random() * 122 + 97))));
+                Random r = new Random();
+                builder.append((char) ((int) (r.nextInt(26) + 'a')));
+            }else if(Math.random()<0.8){
+                Random r = new Random();
+                builder.append((char) ((int) (r.nextInt(26) + 'A')));
             }
             else{
-                builder.append((int) (Math.random()*9));
+                Random r = new Random();
+                builder.append((char) ((int) (r.nextInt(10) + '0')));
             }
         }
         String confirmationCode = builder.toString();
         LabEnvironment.sendConfirmationCode(_database.getUserName(_userId), confirmationCode);
 
         // Wait for client confirmation code
-        String clientConfirmationCode = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey()).trim();
+        String clientConfirmationCode = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey()).trim();
         if (clientConfirmationCode.equals(confirmationCode))
         {
             // Update database, send success message
@@ -293,7 +299,7 @@ public class ClientThread implements Runnable
      */
     public void handleTransaction() throws IOException
     {
-
+        /*
         try
         {
             Thread.sleep(3000);
@@ -302,10 +308,11 @@ public class ClientThread implements Runnable
         {
             e.printStackTrace();
         }
+        */
         Utility.sendPacket(_clientSocketOutputStream, "Authentication failed.");
 
         // Wait for transaction packet
-        String transactionRequest = Utility.receivePacket(_clientSocketInputStream, _database.getPrivateKey());
+        String transactionRequest = Utility.receivePacket(_clientSocketInputStream, _database.get_privateKey());
 
         // Split packet
         String[] transactionRequestParts = transactionRequest.split(",");

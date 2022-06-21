@@ -136,13 +136,13 @@ public class Utility
         byte[] payloadEncoded = new byte[inputStream.readInt()];
         inputStream.readFully(payloadEncoded);
 
-        //decrypt
-        String decrypted = GenerateKeys.decryptMessage(payloadEncoded,privateKey);
-
         // Decode payload
-        String payload = new String(decrypted);
-        safeDebugPrintln("Received '" + payload + "'");
-        return payload;
+        String payload = new String(payloadEncoded);
+
+        String encrypted = GenerateKeys.decryptMessage(payload,privateKey);
+
+        safeDebugPrintln("Received '" + encrypted + "'");
+        return encrypted;
     }
 
     public static String receivePacketNoEncryption(DataInputStream inputStream) throws IOException

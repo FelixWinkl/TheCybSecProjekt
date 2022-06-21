@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
@@ -61,7 +62,6 @@ public class GenerateKeys {
     {
         //converting string to Bytes
         byte[] byte_pubkey  = Base64.getDecoder().decode(str_key);
-        System.out.println("BYTE KEY::" + byte_pubkey);
 
 
         //converting it back to public key
@@ -71,21 +71,56 @@ public class GenerateKeys {
     }
 
     /**
+     * Converts private Key to String
+     * @param privateKey the Private Key
+     * @return the private key as String
+     */
+    public static String privateKeyToString(PrivateKey privateKey){
+        //converting public key to byte
+        byte[] byte_pubkey = privateKey.getEncoded();
+
+        //converting byte to String
+        String str_key = Base64.getEncoder().encodeToString(byte_pubkey);
+        return str_key;
+    }
+
+    /**
+     * Converts String to private KEy
+     * @param str_key the String
+     * @return the private Key
+     * @throws InvalidKeySpecException
+     * @throws NoSuchAlgorithmException
+     */
+    public static PrivateKey stringToPrivateKey(String str_key) throws InvalidKeySpecException, NoSuchAlgorithmException
+    {
+        //converting string to Bytes
+        byte[] byte_pubkey  = Base64.getDecoder().decode(str_key);
+
+
+        //converting it back to public key
+        KeyFactory factory = KeyFactory.getInstance("RSA");
+        PrivateKey privateKeyBack = (PrivateKey) factory.generatePrivate(new PKCS8EncodedKeySpec(byte_pubkey));
+        return privateKeyBack;
+    }
+
+    /**
      * encrypts a message
      * @param msg the message
      * @param publicKey the publicKey
      * @return
      */
-    public static String encryptMessage(String msg, PublicKey publicKey){
+    public static String encryptMessage(String secretMessage, PublicKey publicKey){
 
         String encryptedMessage = new String();
         try
         {
             Cipher encryptCipher = Cipher.getInstance("RSA");
             encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            byte[] secretMessageBytes = msg.getBytes(StandardCharsets.UTF_8);
+            byte[] secretMessageBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
             byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
-            encryptedMessage =  Base64.getEncoder().encodeToString(encryptedMessageBytes);
+            System.out.println(encryptedMessageBytes.length);
+            String encodedString = Base64.getEncoder().encodeToString(encryptedMessageBytes);
+            encryptedMessage = encodedString;
         }
         catch (InvalidKeyException e)
         {
@@ -107,6 +142,8 @@ public class GenerateKeys {
         {
             e.printStackTrace();
         }
+
+
         return encryptedMessage;
     }
 
@@ -116,13 +153,15 @@ public class GenerateKeys {
      * @param privateKey the privat key
      * @return the decryptedMessage
      */
-    public static String decryptMessage(byte[] msg, PrivateKey privateKey){
+    public static String decryptMessage(String encryptedMessage, PrivateKey privateKey){
         String decryptedMessage = new String();
         try
         {
             Cipher decryptCipher = Cipher.getInstance("RSA");
             decryptCipher.init(Cipher.DECRYPT_MODE, privateKey);
-            byte[] decryptedMessageBytes = decryptCipher.doFinal(msg);
+            byte[] encryptedMessageBytes = Base64.getDecoder().decode(encryptedMessage);;
+            System.out.println(encryptedMessageBytes.length);
+            byte[] decryptedMessageBytes = decryptCipher.doFinal(encryptedMessageBytes);
             decryptedMessage = new String(decryptedMessageBytes, StandardCharsets.UTF_8);
         }
         catch (InvalidKeyException e)
@@ -160,6 +199,15 @@ public class GenerateKeys {
         PublicKey publicKey = gk.getPublicKey();
         String publicKeyAsString = publicKeyToString(publicKey);
         PublicKey publicKeyBack = stringToPublicKey(publicKeyAsString);
+
+
+        String message = "HEllo World!";
+
+        String encrypted = encryptMessage(message,gk.getPublicKey());
+        String decrypted = decryptMessage(encrypted,gk.getPrivateKey());
+
+
+        System.out.println(decrypted);
 
 
 

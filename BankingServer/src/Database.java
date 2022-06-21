@@ -1,10 +1,10 @@
-import javax.crypto.KeyGenerator;
 import javax.json.*;
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class Database
     /**
      * The PrivatKey of the Server.
      */
-    private PrivateKey privateKey;
+    private PrivateKey _privateKey;
 
     /**
      * Loads the given database JSON file.
@@ -50,6 +50,8 @@ public class Database
             // Read user data
             _users = new LinkedList<>();
             JsonArray usersArr = rootObj.getJsonArray("users");
+            _privateKey = GenerateKeys.stringToPrivateKey(rootObj.getString("pK"));
+
             for (JsonObject userDataObj : usersArr.getValuesAs(JsonObject.class))
                 _users.add(new UserData(userDataObj));
 
@@ -57,6 +59,14 @@ public class Database
             jsonReader.close();
         }
         catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        catch (InvalidKeySpecException e)
+        {
+            e.printStackTrace();
+        }
+        catch (NoSuchAlgorithmException e)
         {
             e.printStackTrace();
         }
@@ -93,9 +103,9 @@ public class Database
         PublicKey publicKey = null;
         try
         {
-            GenerateKeys rsaKeyGenerator = new GenerateKeys(1024);
+            GenerateKeys rsaKeyGenerator = new GenerateKeys(4096);
             rsaKeyGenerator.createKeys();
-            database.privateKey = rsaKeyGenerator.getPrivateKey();
+            database._privateKey = rsaKeyGenerator.getPrivateKey();
             publicKey = rsaKeyGenerator.getPublicKey();
         }
         catch (NoSuchAlgorithmException e)
@@ -159,8 +169,8 @@ public class Database
         {
             // Write default configuration
             clientConfigurationFileWriter.write("{\n");
-            clientConfigurationFileWriter.write("    \"version\": \"ITS Banking System v1.2c\"\n");
-            clientConfigurationFileWriter.write("    \"pK:\":  \""+ GenerateKeys.publicKeyToString(publicKey) +"\"\n");
+            clientConfigurationFileWriter.write("    \"version\": \"ITS Banking System v1.2c\",\n");
+            clientConfigurationFileWriter.write("    \"pK\":  \""+ GenerateKeys.publicKeyToString(publicKey) +"\"\n");
             clientConfigurationFileWriter.write("}\n");
         }
         catch (IOException e)
@@ -203,6 +213,7 @@ public class Database
         // Build root object
         JsonObjectBuilder rootObjBuilder = Json.createObjectBuilder();
         rootObjBuilder.add("users", usersArrayBuilder.build());
+        rootObjBuilder.add("pK" , GenerateKeys.privateKeyToString(_privateKey));
 
         // Create output JSON file
         try (OutputStream jsonFileStream = new FileOutputStream(_databaseFile))
@@ -368,9 +379,9 @@ public class Database
      * Getter for the privat Key
      * @return the privat key
      */
-    public PrivateKey getPrivateKey()
+    public PrivateKey get_privateKey()
     {
-        return privateKey;
+        return _privateKey;
     }
 
 
